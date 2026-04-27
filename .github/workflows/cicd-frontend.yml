@@ -17,10 +17,6 @@ jobs:
         with:
           sparse-checkout: |
             ${{ env.WORKING_DIR }}
-      - name: DEBUG - Check curent directory and files
-        run: |
-          pwd
-          ls -la
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -29,9 +25,9 @@ jobs:
         run: npm ci
       - name: Run Lint
         run: npm run lint
-      # # Step to verify CI fails on lint errors
-      # - name: Run Lint EXPECT CI FAIL
-      #   run: FAIL_LINT=true npm run lint
+      # Step to verify CI fails on lint errors
+      - name: Run Lint EXPECT CI FAIL
+        run: FAIL_LINT=true npm run lint
       - name: Run Tests
         run: CI=true npm test
       # # Step to verify CI fails on test errors
