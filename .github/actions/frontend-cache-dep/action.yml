@@ -1,0 +1,30 @@
+name: Frontend Cache Dependencies
+
+description: Setup frontend for downstream jobs
+
+inputs:
+  WORKING-DIR:
+    description: The working directory of the application
+    default: .
+    required: false
+
+runs:
+    using: composite
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ inputs.WORKING-DIR }}/.nvmrc
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ inputs.WORKING-DIR }}/node_modules
+          key: fe-node-modules-${{ hashFiles(format('{0}/{1}', inputs.WORKING-DIR, 'package-lock.json')) }} # TODO: May want to include environment and/or build run
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != true
+        run: |
+          echo "Cache not found, installing dependencies..."
+          npm ci
+        shell: bash
+        working-directory: ${{ inputs.WORKING-DIR }}

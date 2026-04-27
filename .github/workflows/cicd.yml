@@ -1,0 +1,10 @@
+name: CI/CD - Movie Picture Application
+
+on: 
+  - workflow_dispatch
+
+jobs:
+  ci-backend:
+    uses: ./.github/workflows/ci-backend.yml
+  ci-frontend:
+    uses: ./.github/workflows/ci-frontend.yml
