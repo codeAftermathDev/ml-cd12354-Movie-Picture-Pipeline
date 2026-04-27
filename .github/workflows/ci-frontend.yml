@@ -1,4 +1,4 @@
-name: CICD - Movie Application Frontend
+name: CI - Movie Picture Application Frontend
 
 on: workflow_dispatch
 
