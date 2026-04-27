@@ -1,0 +1,39 @@
+name: CICD - Movie Application Frontend
+
+on: workflow_dispatch
+
+env:
+  WORKING_DIR: starter/frontend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - name: Checkout Frontend Code
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            ${{ env.WORKING_DIR }}
+      - name: DEBUG - Check curent directory and files
+        run: |
+          pwd
+          ls -la
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.WORKING_DIR }}/.nvmrc
+      - name: Install Dependencies
+        run: npm ci
+      - name: Run Lint
+        run: npm run lint
+      # # Step to verify CI fails on lint errors
+      # - name: Run Lint EXPECT CI FAIL
+      #   run: FAIL_LINT=true npm run lint
+      - name: Run Tests
+        run: CI=true npm test
+      # # Step to verify CI fails on test errors
+      # - name: Run Tests EXPECT CI FAIL
+      #   run: FAIL_TEST=true CI=true npm test
