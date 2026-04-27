@@ -1,0 +1,61 @@
+name: CI - Movie Picture Application Backend
+
+on: workflow_dispatch
+
+env:
+  WORKING_DIR: starter/backend
+
+# Need ID token write permission to use OIDC
+permissions:
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - name: Checkout Backend Code
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            ${{ env.WORKING_DIR }}
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ${{ env.WORKING_DIR }}/.python-version
+      - name: Setup pipenv and flake8
+        run: |
+          pip install pipenv flake8
+          pipenv --version
+          flake8 --version
+      - name: Install Dependencies
+        run: pipenv install
+      - name: Run Lint
+        run: pipenv run lint
+      # # Step to verify CI fails on lint errors
+      # - name: Run Lint EXPECT CI FAIL
+      #   run: pipenv run lint-fail
+      - name: Run Tests
+        run: pipenv run test
+      # # Step to verify CI fails on test errors
+      # - name: Run Tests EXPECT CI FAIL
+      #   run: FAIL_TEST=true pipenv run test
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ secrets.MP_BACKEND_REPO }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+          -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
