@@ -1,8 +1,8 @@
 name: CI - Movie Picture Application Frontend
 
 on: 
-  - workflow_dispatch
-  - workflow_call
+  workflow_dispatch:
+  workflow_call:
 
 env:
   WORKING_DIR: starter/frontend
@@ -10,6 +10,7 @@ env:
 # Need ID token write permission to use OIDC
 permissions:
   id-token: write
+  contents: read
 
 jobs:
   setup:

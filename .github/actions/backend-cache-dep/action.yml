@@ -16,17 +16,22 @@ runs:
       with:
         python-version-file: ${{ inputs.WORKING-DIR }}/.python-version
     - name: Setup pipenv
+      id: setup-pipenv
       run: |
-        pip install pipenv
+        pip install pipenv flake8
         pipenv --version
+      env:
+        PIPENV_VENV_IN_PROJECT: "1"
       shell: bash
       working-directory: ${{ inputs.WORKING-DIR }}
     - name: Cache dependencies
       id: cache
       uses: actions/cache@v5
       with:
-        path: ${{ inputs.WORKING-DIR }}/.venv
-        key: be-venv-${{ hashFiles(format('{0}/{1}', inputs.WORKING-DIR, 'Pipfile.lock')) }} # TODO: May want to include environment and/or build run
+        path: |
+          ${{ inputs.WORKING-DIR }}/.venv
+          ~/.cache/pip
+        key: be-venv-${{ hashFiles(format('{0}/{1}', inputs.WORKING-DIR, '.python-version')) }}-${{ hashFiles(format('{0}/{1}', inputs.WORKING-DIR, 'Pipfile.lock')) }}
     - name: Install Dependencies
       if: steps.cache.outputs.cache-hit != true
       run: |
@@ -34,3 +39,5 @@ runs:
         pipenv install --deploy --ignore-pipfile # Flags produces a more deterministic build artifact
       shell: bash
       working-directory: ${{ inputs.WORKING-DIR }}
+      env:
+        PIPENV_VENV_IN_PROJECT: "1"

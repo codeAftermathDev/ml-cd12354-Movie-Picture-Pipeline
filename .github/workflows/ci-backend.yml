@@ -1,8 +1,15 @@
 name: CI - Movie Picture Application Backend
 
 on: 
-  - workflow_dispatch
-  - workflow_call
+  workflow_dispatch:
+    inputs:
+      FAIL_LINT:
+        type: boolean
+        default: false
+      FAIL_TEST:
+        type: boolean
+        default: false
+  workflow_call:
 
 env:
   WORKING_DIR: starter/backend
@@ -10,6 +17,7 @@ env:
 # Need ID token write permission to use OIDC
 permissions:
   id-token: write
+  contents: read
 
 jobs:
   setup:
@@ -45,13 +53,11 @@ jobs:
         with:
           WORKING-DIR: ${{ env.WORKING_DIR }}
       - name: Run Lint
-        run: | 
-          pip install flake8
-          flake8 --version
-          pipenv run lint
-      # # Step to verify CI fails on lint errors
-      # - name: Run Lint EXPECT CI FAIL
-      #   run: FAIL_LINT=true pipenv run lint
+        run: pipenv run lint -- --exclude=.venv,__pycache__
+      # Step to verify CI fails on lint errors
+      - name: Run Lint EXPECT CI FAIL
+        if: ${{ inputs.FAIL_LINT == 'true' }}
+        run: FAIL_LINT=true pipenv run lint
   test:
     runs-on: ubuntu-latest
     needs: setup
@@ -72,9 +78,10 @@ jobs:
           WORKING-DIR: ${{ env.WORKING_DIR }}
       - name: Run Tests
         run: pipenv run test
-      # # Step to verify CI fails on test errors
-      # - name: Run Tests EXPECT CI FAIL
-      #   run: FAIL_TEST=true pipenv run test
+      # Step to verify CI fails on test errors
+      - name: Run Tests EXPECT CI FAIL
+        if: ${{ inputs.FAIL_TEST == 'true' }}
+        run: FAIL_TEST=true pipenv run test
   build:
     runs-on: ubuntu-latest
     needs: [ lint, test ]

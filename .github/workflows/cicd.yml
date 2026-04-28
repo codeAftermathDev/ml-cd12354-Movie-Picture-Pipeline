@@ -1,13 +1,15 @@
 name: CI/CD - Movie Picture Application
 
-on: 
-  - workflow_dispatch
+on: workflow_dispatch
 
 permissions:
   id-token: write
+  contents: read
 
 jobs:
   ci-backend:
     uses: ./.github/workflows/ci-backend.yml
+    secrets: inherit
   ci-frontend:
     uses: ./.github/workflows/ci-frontend.yml
+    secrets: inherit

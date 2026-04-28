@@ -1,5 +1,8 @@
 name: Terraform Cleanup AWS Resources
 
+concurrency:
+  group: terraform-cleanup
+
 on: workflow_dispatch
 
 env:
@@ -7,6 +10,7 @@ env:
 
 permissions:
   id-token: write
+  contents: read
 
 jobs:
   cleanup:
