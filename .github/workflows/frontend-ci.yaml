@@ -2,12 +2,24 @@ name: CI - Movie Picture Application Frontend
 
 on:
   workflow_dispatch:
+    inputs:
+      FAIL_LINT:
+        type: boolean
+        default: false
+      FAIL_TEST:
+        type: boolean
+        default: false
   workflow_call:
     outputs:
       IMAGE-TAG:
         value: ${{ jobs.build.outputs.IMAGE-TAG }}
-      IMAGE-URI:
-        value: ${{ jobs.build.outputs.IMAGE-URI }}
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "starter/frontend/**"
+      - ".github/workflows/frontend-ci.yaml"
+      - ".github/actions/frontend-cache-dep/**"
 
 env:
   WORKING_DIR: starter/frontend
@@ -45,16 +57,17 @@ jobs:
           sparse-checkout: |
             .github/actions
             ${{ env.WORKING_DIR }}
-      - name: Setup
+      - name: Restore Cache
         id: setup-frontend
         uses: ./.github/actions/frontend-cache-dep
         with:
           WORKING-DIR: ${{ env.WORKING_DIR }}
       - name: Run Lint
         run: npm run lint
-      # # Step to verify CI fails on lint errors
-      # - name: Run Lint EXPECT CI FAIL
-      #   run: FAIL_LINT=true npm run lint
+      # Step to verify CI fails on lint errors
+      - name: Run Lint EXPECT CI FAIL
+        if: ${{ inputs.FAIL_LINT == true }}
+        run: FAIL_LINT=true npm run lint
   test:
     runs-on: ubuntu-latest
     needs: setup
@@ -68,23 +81,23 @@ jobs:
           sparse-checkout: |
             .github/actions
             ${{ env.WORKING_DIR }}
-      - name: Setup
+      - name: Restore Cache
         id: setup-frontend
         uses: ./.github/actions/frontend-cache-dep
         with:
           WORKING-DIR: ${{ env.WORKING_DIR }}
       - name: Run Tests
         run: CI=true npm test
-      # # Step to verify CI fails on test errors
-      # - name: Run Tests EXPECT CI FAIL
-      #   run: FAIL_TEST=true CI=true npm test
+      # Step to verify CI fails on test errors
+      - name: Run Tests EXPECT CI FAIL
+        if: ${{ inputs.FAIL_TEST == true }}
+        run: FAIL_TEST=true CI=true npm test
   build:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.WORKING_DIR }}
     outputs:
-      IMAGE-URI: ${{ steps.docker-build.outputs.IMAGE-URI }}
       IMAGE-TAG: ${{ steps.docker-build.outputs.IMAGE-TAG }}
     needs: [lint, test]
     steps:
@@ -94,7 +107,7 @@ jobs:
           sparse-checkout: |
             .github/actions
             ${{ env.WORKING_DIR }}
-      - name: Setup
+      - name: Restore Cache
         id: setup-frontend
         uses: ./.github/actions/frontend-cache-dep
         with:
@@ -121,5 +134,3 @@ jobs:
 
           tag=$IMAGE_TAG
           echo "IMAGE-TAG=$tag" >> "$GITHUB_OUTPUT"
-          uri=$REGISTRY/$REPOSITORY:$IMAGE_TAG
-          echo "IMAGE-URI=$uri" >> "$GITHUB_OUTPUT"

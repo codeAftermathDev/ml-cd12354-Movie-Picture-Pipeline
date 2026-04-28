@@ -13,8 +13,13 @@ on:
     outputs:
       IMAGE-TAG:
         value: ${{ jobs.build.outputs.IMAGE-TAG }}
-      IMAGE-URI:
-        value: ${{ jobs.build.outputs.IMAGE-URI }}
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "starter/backend/**"
+      - ".github/workflows/ci-backend.yaml"
+      - ".github/actions/backend-cache-dep/**"
 
 env:
   WORKING_DIR: starter/backend
@@ -52,7 +57,7 @@ jobs:
           sparse-checkout: |
             .github/actions
             ${{ env.WORKING_DIR }}
-      - name: Cache dependencies
+      - name: Restore Cache
         id: setup-backend
         uses: ./.github/actions/backend-cache-dep
         with:
@@ -76,7 +81,7 @@ jobs:
           sparse-checkout: |
             .github/actions
             ${{ env.WORKING_DIR }}
-      - name: Cache dependencies
+      - name: Restore Cache
         id: setup-backend
         uses: ./.github/actions/backend-cache-dep
         with:
@@ -94,7 +99,6 @@ jobs:
       run:
         working-directory: ${{ env.WORKING_DIR }}
     outputs:
-      IMAGE-URI: ${{ steps.docker-build.outputs.IMAGE-URI }}
       IMAGE-TAG: ${{ steps.docker-build.outputs.IMAGE-TAG }}
     steps:
       - name: Checkout Backend Code
@@ -103,7 +107,7 @@ jobs:
           sparse-checkout: |
             .github/actions
             ${{ env.WORKING_DIR }}
-      - name: Cache dependencies
+      - name: Restore Cache
         id: setup-backend
         uses: ./.github/actions/backend-cache-dep
         with:
@@ -128,5 +132,3 @@ jobs:
 
           tag=$IMAGE_TAG
           echo "IMAGE-TAG=$tag" >> "$GITHUB_OUTPUT"
-          uri=$REGISTRY/$REPOSITORY:$IMAGE_TAG
-          echo "IMAGE-URI=$uri" >> "$GITHUB_OUTPUT"
