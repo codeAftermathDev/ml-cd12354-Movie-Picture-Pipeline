@@ -3,6 +3,9 @@ name: CI/CD - Movie Picture Application
 on: 
   - workflow_dispatch
 
+permissions:
+  id-token: write
+
 jobs:
   ci-backend:
     uses: ./.github/workflows/ci-backend.yml
