@@ -18,4 +18,11 @@ terraform {
       version = "4.55.0"
     }
   }
+  backend "s3" {
+    bucket          = "ml-movie-picture-state-bucket"
+    key             = "movie-picture-pipeline/terraform.tfstate"
+    region          = "us-east-1"
+    dynamodb_table  = "terraform-locks"
+    encrypt         = true
+  }
 }
