@@ -1,0 +1,41 @@
+name: Terraform Deploy AWS Resources
+
+on: workflow_dispatch
+
+env:
+  WORKING_DIR: setup/terraform
+
+permissions:
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy AWS Resources with Terraform
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            ${{ env.WORKING_DIR }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.3.9
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Plan Terraform deployment
+        run: terraform plan
+
+      - name: Apply Terraform deployment
+        run: terraform apply -auto-approve
