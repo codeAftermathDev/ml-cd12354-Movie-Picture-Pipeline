@@ -1,9 +1,15 @@
-name: Terraform Deploy AWS Resources
+name: Terraform Provisioning and Cleanup
 
 concurrency:
   group: terraform-cleanup
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+    inputs:
+      DESTROY:
+        description: Set to true to destroy resources instead of deploying
+        type: boolean
+        default: false
 
 env:
   WORKING_DIR: setup/terraform
@@ -39,7 +45,14 @@ jobs:
         run: terraform init
 
       - name: Plan Terraform deployment
+        if: ${{ github.event.inputs.DESTROY != 'true' }}
         run: terraform plan
 
       - name: Apply Terraform deployment
+        if: ${{ github.event.inputs.DESTROY != 'true' }}
         run: terraform apply -auto-approve
+
+      - name: Destroy Terraform deployment
+        if: ${{ github.event.inputs.DESTROY == 'true' }}
+        run: terraform destroy -auto-approve
+        
