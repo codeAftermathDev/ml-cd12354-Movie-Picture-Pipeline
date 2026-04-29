@@ -1,4 +1,4 @@
-name: CI - Movie Picture Application Backend
+name: Backend Continuous Integration
 
 on:
   workflow_dispatch:
